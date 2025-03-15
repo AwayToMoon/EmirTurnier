@@ -306,6 +306,65 @@
     </div>
 
     <script>
+        // Initialisiere den Turnierbaum-Status
+        function initializeTournament() {
+            const savedState = localStorage.getItem('tournamentState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                Object.keys(state).forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        if (element.tagName === 'INPUT') {
+                            element.value = state[id];
+                        } else {
+                            element.textContent = state[id];
+                        }
+                    }
+                });
+            }
+        }
+
+        // Speichere den aktuellen Status
+        function saveState() {
+            const state = {};
+            // Speichere alle Spieler-Inputs
+            for (let i = 1; i <= 8; i++) {
+                const input = document.getElementById('p' + i);
+                if (input) state['p' + i] = input.value;
+            }
+            // Speichere alle Halbfinal-Ergebnisse
+            for (let i = 1; i <= 4; i++) {
+                const semi = document.getElementById('s' + i);
+                if (semi) state['s' + i] = semi.textContent;
+            }
+            // Speichere den Sieger
+            const winner = document.getElementById('winner');
+            if (winner) state['winner'] = winner.textContent;
+
+            localStorage.setItem('tournamentState', JSON.stringify(state));
+        }
+
+        // Prüfe regelmäßig auf Änderungen
+        function checkForUpdates() {
+            const savedState = localStorage.getItem('tournamentState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                Object.keys(state).forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        const currentValue = element.tagName === 'INPUT' ? element.value : element.textContent;
+                        if (currentValue !== state[id]) {
+                            if (element.tagName === 'INPUT') {
+                                element.value = state[id];
+                            } else {
+                                element.textContent = state[id];
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
         function advance(fromId, toId) {
             const from = document.getElementById(fromId);
             const to = document.getElementById(toId);
@@ -317,10 +376,22 @@
                 setTimeout(() => {
                     to.parentElement.style.background = 'rgba(255, 255, 255, 0.1)';
                 }, 1000);
+                saveState(); // Speichere nach jeder Änderung
             } else {
                 alert('Bitte geben Sie einen gültigen Spielernamen ein!');
             }
         }
+
+        // Füge Event-Listener für Input-Änderungen hinzu
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', saveState);
+        });
+
+        // Initialisiere den Turnierbaum
+        initializeTournament();
+
+        // Prüfe alle 2 Sekunden auf Änderungen
+        setInterval(checkForUpdates, 2000);
     </script>
 </body>
 </html>
